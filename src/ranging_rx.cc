@@ -5,6 +5,7 @@
 #include <liquid/liquid.h>
 #include "ranging_rx.h"
 #include "costas.h"
+#include "gardner.h"
 
 extern int done;
 
@@ -33,7 +34,12 @@ void rx_thread(struct bladerf *dev) {
 	/* carrier phase recovery costas loop */
 	Costas costas(RX_COSTAS_WN, RX_COSTAS_ZETA);
 	std::complex<float> costas_out;
-	int costas_locked = 0;
+	bool costas_locked = 0;
+
+	/* bit clock recovery gardner loop */
+	Gardner gardner = Gardner(RX_GARDNER_SPLS_PER_SYM);
+	bool gardner_locked = 0;
+	bool gardner_new_bit = 0;
 
 	/* Allocate a buffer to store received samples in */
 	rx_samples = (int16_t *) malloc(samples_len * 2 * sizeof(int16_t));
@@ -95,6 +101,20 @@ void rx_thread(struct bladerf *dev) {
 				if (costas_locked && !costas.is_locked()) {
 					costas_locked = 0;
 					printf("Costas unlocked at %d!\n", j);
+				}
+
+				gardner_new_bit = gardner.step(costas_out.imag());
+				if (gardner.is_locked()) {
+					if (!gardner_locked) {
+						gardner_locked = 1;
+						printf("Gardner locked at %d!\n", j);
+					}
+					if (gardner_new_bit) {
+						/* get new available bit, process */
+					}
+				} else if (gardner_locked) {
+					gardner_locked = 0;
+					printf("Gardner unlocked at %d!\n", j);
 				}
 
 				write_i = costas_out.real();

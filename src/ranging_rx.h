@@ -28,6 +28,9 @@
 #define RX_COSTAS_WN		(2*M_PI*(RX_FC_NOM/100)/RX_COSTAS_FS)
 #define RX_COSTAS_ZETA		0.7071f
 
+/* gardner loop parameters */
+#define RX_GARDNER_SPLS_PER_SYM	(RX_OSF_NOM/RX_CHFILT_DECIM)
+
 void rx_thread(struct bladerf *dev);
 
 #endif
