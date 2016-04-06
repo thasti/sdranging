@@ -1,6 +1,6 @@
 clear all
 
-fd = fopen('../c/tmp.dat');
+fd = fopen('../src/tmp.dat');
 d = fread(fd, 'float');
 d = d(1:2:end) + 1j*d(2:2:end);
 
