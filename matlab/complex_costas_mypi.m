@@ -10,7 +10,7 @@ f_sig = 10e3;
 n_bit = 1e4;
 
 % calculate active PI loop filter
-wn                = 2*pi*(fsym/100)/fs;
+wn                = 2*pi*(fsym/30)/fs;
 zeta              = 0.707;
 K                 = (1/(2*pi*2*pi));
 
@@ -18,7 +18,7 @@ g1 = (1-exp(-2*zeta*wn))/K;
 g2 = (1+exp(-2*zeta*wn)-2*exp(-zeta*wn)*cos(wn*sqrt(1-zeta.^2)))/K;
 
 % prepare transmitted data and transmission signal
-h = sin(pi*(0:samp_per_sym)/samp_per_sym);
+h = sin(pi*(0:(samp_per_sym-1))/samp_per_sym);
 h = h / sum(h);
 d = ((rand(1, n_bit) > 0.5) * 2) - 1;
 d = kron(d, ones(1, samp_per_sym));
