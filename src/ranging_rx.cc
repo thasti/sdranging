@@ -36,9 +36,14 @@ void rx_thread(struct bladerf *dev) {
 	std::complex<float> costas_out;
 	bool costas_locked = 0;
 
+	/* matched filter */
+	firfilt_rrrf matched_filter;
+	float matched_filter_h[MFILT_SPLS_PER_SYM];
+	float matched_filter_out;
+	float matched_filter_sum = 0;
+
 	/* bit clock recovery gardner loop */
-	Gardner gardner = Gardner(RX_GARDNER_SPLS_PER_SYM);
-	bool gardner_locked = 0;
+	Gardner gardner = Gardner(RX_GARDNER_WN, RX_GARDNER_ZETA, RX_GARDNER_SPLS_PER_SYM);
 	bool gardner_new_bit = 0;
 
 	/* Allocate a buffer to store received samples in */
@@ -68,6 +73,17 @@ void rx_thread(struct bladerf *dev) {
 		chfilt_h[i] = chfilt_h[i] / chfilt_sum;
 	}
 	chfilt = firdecim_crcf_create(RX_CHFILT_DECIM, chfilt_h, chfilt_len);
+	
+	/* design and normalize matched filter */
+	for (i = 0; i < MFILT_SPLS_PER_SYM; i++) {
+		matched_filter_h[i] = sinf(M_PI * i / MFILT_SPLS_PER_SYM);
+		matched_filter_sum += matched_filter_h[i];
+	}
+	for (i = 0; i < MFILT_SPLS_PER_SYM; i++) {
+		matched_filter_h[i] = matched_filter_h[i] / matched_filter_sum;
+	}
+	matched_filter = firfilt_rrrf_create(matched_filter_h, MFILT_SPLS_PER_SYM);
+
 
 	std::ofstream out("tmp.dat",std::ios_base::binary);
 	float write_i;
@@ -103,20 +119,16 @@ void rx_thread(struct bladerf *dev) {
 					printf("Costas unlocked at %d!\n", j);
 				}
 
-				gardner_new_bit = gardner.step(costas_out.imag());
-				if (gardner.is_locked()) {
-					if (!gardner_locked) {
-						gardner_locked = 1;
-						printf("Gardner locked at %d!\n", j);
-					}
-					if (gardner_new_bit) {
-						/* get new available bit, process */
-					}
-				} else if (gardner_locked) {
-					gardner_locked = 0;
-					printf("Gardner unlocked at %d!\n", j);
+				firfilt_rrrf_push(matched_filter, costas_out.imag());
+				firfilt_rrrf_execute(matched_filter, &matched_filter_out);
+
+				gardner_new_bit = gardner.step(matched_filter_out);
+				if (gardner_new_bit) {
+					/* get new available bit, process */
+					printf("Bit at %d - %f.\n", j, matched_filter_out);
 				}
 
+				//write_i = matched_filter_out;
 				write_i = costas_out.real();
 				write_q = costas_out.imag();
 

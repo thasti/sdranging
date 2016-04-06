@@ -2,6 +2,8 @@
 #include "costas.h"
 
 Costas::Costas(float wn, float zeta) {
+	float gain = 1.0/(2*M_PI*2*M_PI); /* NCO gain is 2*pi, phase detector gain is 2*pi */
+
 	phase_acc = 0;
 	phase_inc = 0;
 	integrator = 0;

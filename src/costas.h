@@ -8,7 +8,6 @@ class Costas {
 	float integrator;
 	float phase_acc;
 	float phase_inc;
-	float gain = 1.0/(2*M_PI*2*M_PI);
 	float ld_avg;
 
 	public:
