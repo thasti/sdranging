@@ -6,6 +6,7 @@
 #include "ranging_rx.h"
 #include "costas.h"
 #include "gardner.h"
+#include "t2bcorr.h"
 
 extern int done;
 
@@ -46,6 +47,11 @@ void rx_thread(struct bladerf *dev) {
 	Gardner gardner = Gardner(RX_GARDNER_WN, RX_GARDNER_ZETA, RX_GARDNER_SPLS_PER_SYM);
 	bool gardner_new_bit = 0;
 
+	/* T2B correlator for sequence position estimation */
+	T2Bcorr t2bcorr = T2Bcorr(RX_T2B_CORR_CHIPS);
+	bool t2b_corr_finished = 0;
+	int t2b_corr_pos = 0;
+
 	/* Allocate a buffer to store received samples in */
 	rx_samples = (int16_t *) malloc(samples_len * 2 * sizeof(int16_t));
 	if (rx_samples == NULL) {
@@ -83,7 +89,6 @@ void rx_thread(struct bladerf *dev) {
 		matched_filter_h[i] = matched_filter_h[i] / matched_filter_sum;
 	}
 	matched_filter = firfilt_rrrf_create(matched_filter_h, MFILT_SPLS_PER_SYM);
-
 
 	std::ofstream out("tmp.dat",std::ios_base::binary);
 	float write_i;
@@ -125,7 +130,13 @@ void rx_thread(struct bladerf *dev) {
 				gardner_new_bit = gardner.step(matched_filter_out);
 				if (gardner_new_bit) {
 					/* get new available bit, process */
-					printf("Bit at %d - %f.\n", j, matched_filter_out);
+					//printf("Bit at %d - %f.\n", j, matched_filter_out);
+					gardner_new_bit = gardner.get_last_bit();
+					t2b_corr_finished = t2bcorr.step((int)(gardner_new_bit)*2 - 1);
+					if (t2b_corr_finished) {
+						t2b_corr_pos = t2bcorr.get_position();
+						printf("Correlation finished, Position: %d\n", t2b_corr_pos);
+					}
 				}
 
 				//write_i = matched_filter_out;
