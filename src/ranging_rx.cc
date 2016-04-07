@@ -7,6 +7,7 @@
 #include "costas.h"
 #include "gardner.h"
 #include "t2bcorr.h"
+#include "rangecalc.h"
 
 extern int done;
 
@@ -51,6 +52,9 @@ void rx_thread(struct bladerf *dev) {
 	T2Bcorr t2bcorr = T2Bcorr(RX_T2B_CORR_CHIPS);
 	bool t2b_corr_finished = 0;
 	int t2b_corr_pos = 0;
+
+	/* range tracker */
+	RangeCalc rangecalc = RangeCalc(RX_GARDNER_FS, RX_GARDNER_SPLS_PER_SYM, RX_T2B_CORR_CHIPS);
 
 	/* Allocate a buffer to store received samples in */
 	rx_samples = (int16_t *) malloc(samples_len * 2 * sizeof(int16_t));
@@ -127,19 +131,24 @@ void rx_thread(struct bladerf *dev) {
 				firfilt_rrrf_push(matched_filter, costas_out.imag());
 				firfilt_rrrf_execute(matched_filter, &matched_filter_out);
 
+			
 				gardner_new_bit = gardner.step(matched_filter_out);
+
+				rangecalc.step();
+
 				if (gardner_new_bit) {
 					/* get new available bit, process */
-					//printf("Bit at %d - %f.\n", j, matched_filter_out);
 					gardner_new_bit = gardner.get_last_bit();
 					t2b_corr_finished = t2bcorr.step((int)(gardner_new_bit)*2 - 1);
 					if (t2b_corr_finished) {
-						t2b_corr_pos = t2bcorr.get_position();
-						printf("Correlation finished, Position: %d\n", t2b_corr_pos);
+						printf("Correlation done. Lock: %d, Sample offset: %.2f\n", t2bcorr.is_locked(), t2b_corr_pos, rangecalc.get_offset());
+						if (t2bcorr.is_locked()) {
+							t2b_corr_pos = t2bcorr.get_position();
+							rangecalc.new_position(t2b_corr_pos);
+						}
 					}
 				}
 
-				//write_i = matched_filter_out;
 				write_i = costas_out.real();
 				write_q = costas_out.imag();
 

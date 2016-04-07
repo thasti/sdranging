@@ -194,5 +194,8 @@ int T2Bcorr::get_position(void) {
 		} else {
 				return 0;
 		}
+}
 
+bool T2Bcorr::is_locked(void) {
+	return locked_min || locked_max;
 }

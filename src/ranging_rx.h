@@ -38,7 +38,7 @@
 #define RX_GARDNER_ZETA		1.0
 
 /* T2B correlator parameters */
-#define RX_T2B_CORR_CHIPS	10e3
+#define RX_T2B_CORR_CHIPS	1e3
 
 void rx_thread(struct bladerf *dev);
 

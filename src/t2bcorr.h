@@ -21,8 +21,8 @@ class T2Bcorr {
 	int tcorr;
 	int corr_i;
 
-	int locked_min = 0;
-	int locked_max = 0;
+	bool locked_min = 0;
+	bool locked_max = 0;
 	int pos_min;
 	int pos_max;
 
@@ -39,6 +39,7 @@ class T2Bcorr {
 		void reset(void);
 		bool step(int chip);
 		int get_position(void);
+		bool is_locked(void);
 };
 
 #endif
