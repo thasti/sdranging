@@ -10,6 +10,36 @@
 #include "rangecalc.h"
 
 extern int done;
+extern int calibration_running;
+
+void process_corr_result(Costas &costas, T2Bcorr &t2bcorr, RangeCalc &rangecalc) {
+	int t2b_corr_pos = 0;
+	static bool t2b_corr_locked = 0;
+
+	t2b_corr_pos = t2bcorr.get_position();
+	if (calibration_running) {
+		if (t2bcorr.is_locked()) {
+			rangecalc.new_offset_position(t2b_corr_pos);
+			if (!t2b_corr_locked) {
+				/* on first lock, preset average offset */
+				rangecalc.preset_offset_average();
+			}
+			t2b_corr_locked = 1;
+		} else {
+			t2b_corr_locked = 0;
+		}
+	} else {
+		if (t2bcorr.is_locked()) {
+			rangecalc.new_range_position(t2b_corr_pos);
+		}
+		
+	}
+	printf("Done. Costas Lock: %d, T2B Lock: %d, Sample offset: %.2f, Range: %.2f km\n", 
+			costas.is_locked(), 
+			t2bcorr.is_locked(), 
+			rangecalc.get_offset(),
+			rangecalc.get_range());
+}
 
 void rx_thread(struct bladerf *dev) {
 	int16_t *rx_samples = NULL;
@@ -51,7 +81,6 @@ void rx_thread(struct bladerf *dev) {
 	/* T2B correlator for sequence position estimation */
 	T2Bcorr t2bcorr = T2Bcorr(RX_T2B_CORR_CHIPS);
 	bool t2b_corr_finished = 0;
-	int t2b_corr_pos = 0;
 
 	/* range tracker */
 	RangeCalc rangecalc = RangeCalc(RX_GARDNER_FS, RX_GARDNER_SPLS_PER_SYM, RX_T2B_CORR_CHIPS);
@@ -119,6 +148,7 @@ void rx_thread(struct bladerf *dev) {
 				chfilt_out = chfilt_out / limiter_value;
 				costas_out = costas.step(chfilt_out);
 
+				/*
 				if (!costas_locked && costas.is_locked()) {
 					costas_locked = 1;
 					printf("Costas locked at %d!\n", j);
@@ -127,6 +157,7 @@ void rx_thread(struct bladerf *dev) {
 					costas_locked = 0;
 					printf("Costas unlocked at %d!\n", j);
 				}
+				*/
 
 				firfilt_rrrf_push(matched_filter, costas_out.imag());
 				firfilt_rrrf_execute(matched_filter, &matched_filter_out);
@@ -141,11 +172,7 @@ void rx_thread(struct bladerf *dev) {
 					gardner_new_bit = gardner.get_last_bit();
 					t2b_corr_finished = t2bcorr.step((int)(gardner_new_bit)*2 - 1);
 					if (t2b_corr_finished) {
-						printf("Correlation done. Lock: %d, Sample offset: %.2f\n", t2bcorr.is_locked(), t2b_corr_pos, rangecalc.get_offset());
-						if (t2bcorr.is_locked()) {
-							t2b_corr_pos = t2bcorr.get_position();
-							rangecalc.new_position(t2b_corr_pos);
-						}
+						process_corr_result(costas, t2bcorr, rangecalc);
 					}
 				}
 

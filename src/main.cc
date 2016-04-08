@@ -15,10 +15,16 @@ extern void rx_thread(struct bladerf *dev);
 extern void tx_thread(struct bladerf *dev);
 
 int volatile done = 0;
+int volatile calibration_running = 1;
 
 void intHandler(int signal) {
-	printf("Exiting..\n");
-	done = 1;
+	if (calibration_running) {
+		calibration_running = 0;
+		printf("Finishing calibration..\n");
+	} else {
+		done = 1;
+		printf("Exiting..\n");
+	}
 }
 
 int main(int argc, char *argv[])
