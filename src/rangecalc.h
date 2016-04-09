@@ -10,7 +10,7 @@ class RangeCalc {
 	int chip_spls;
 	long code_length_steps;
 	long spl_position;
-	int spl_offset;
+	long spl_offset;
 	int tcorr;
 
 	float spl_offset_frac;
