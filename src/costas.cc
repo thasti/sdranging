@@ -36,11 +36,11 @@ std::complex<float> Costas::step(std::complex<float> input) {
 		phase_acc += 2*M_PI;
 	}
 	
-	ld_avg = COSTAS_LD_LAMBDA * ld_avg + (1.0-COSTAS_LD_LAMBDA) * fabs(tmp.real());
+	ld_avg = COSTAS_LD_LAMBDA * ld_avg + (1.0-COSTAS_LD_LAMBDA) * (tmp.imag() * tmp.imag() - tmp.real() * tmp.real());
 
 	return tmp;
 }
 
 bool Costas::is_locked() {
-	return ld_avg < COSTAS_LD_THR;
+	return ld_avg > COSTAS_LD_THR;
 }
