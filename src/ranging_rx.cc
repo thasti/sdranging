@@ -3,6 +3,7 @@
 #include <fstream>
 #include <libbladeRF.h>
 #include <liquid/liquid.h>
+#include "bladerf.h"
 #include "ranging_rx.h"
 #include "costas.h"
 #include "gardner.h"
@@ -39,6 +40,27 @@ void process_corr_result(Costas &costas, T2Bcorr &t2bcorr, RangeCalc &rangecalc)
 			t2bcorr.is_locked(), 
 			rangecalc.get_offset(),
 			rangecalc.get_range());
+}
+
+void check_calibration_finish(struct bladerf *dev) {
+	static bool calibration_already_finished = 0;
+    	int status;
+	
+	if (!calibration_already_finished) {
+		if (!calibration_running) {
+			calibration_already_finished = 1;
+			status = bladerf_set_frequency(dev, BLADERF_MODULE_RX, BLADERF_RX_MEAS_FREQUENCY);
+    			if (status != 0) {
+        			fprintf(stderr, "Failed to set RX measurement frequency, %s\n",
+            			bladerf_strerror(status));
+			}
+			status = bladerf_set_frequency(dev, BLADERF_MODULE_TX, BLADERF_TX_MEAS_FREQUENCY);
+    			if (status != 0) {
+        			fprintf(stderr, "Failed to set RX measurement frequency, %s\n",
+            			bladerf_strerror(status));
+			}
+    		}
+	}
 }
 
 void rx_thread(struct bladerf *dev) {
@@ -160,6 +182,7 @@ void rx_thread(struct bladerf *dev) {
 					t2b_corr_finished = t2bcorr.step((int)(gardner_new_bit)*2 - 1);
 					if (t2b_corr_finished) {
 						process_corr_result(costas, t2bcorr, rangecalc);
+						check_calibration_finish(dev);
 					}
 				}
 

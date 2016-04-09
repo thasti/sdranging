@@ -50,10 +50,10 @@ int main(int argc, char *argv[])
 	
 	/* Set up RX module parameters */
 	config.module	  = BLADERF_MODULE_RX;
-	config.frequency  = 433000000;
+	config.frequency  = BLADERF_RX_CALIB_FREQUENCY;
 	config.bandwidth  = 1500000;
 	config.samplerate = 2000000;
-	config.rx_lna	  = BLADERF_LNA_GAIN_MID;
+	config.rx_lna	  = BLADERF_LNA_GAIN_BYPASS;
 	config.vga1		  = 30;
 	config.vga2		  = 0;
 
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 
 	/* Set up TX module parameters */
 	config.module	  = BLADERF_MODULE_TX;
-	config.frequency  = 433000000;
+	config.frequency  = BLADERF_TX_CALIB_FREQUENCY;
 	config.bandwidth  = 1500000;
 	config.samplerate = 2000000;
 	config.vga1		  = -20;

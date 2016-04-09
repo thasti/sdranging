@@ -1,6 +1,12 @@
 #ifndef __BLADERF_H__
 #define __BLADERF_H__
 
+#define BLADERF_RX_CALIB_FREQUENCY	433000000
+#define BLADERF_TX_CALIB_FREQUENCY	433000000
+
+#define BLADERF_RX_MEAS_FREQUENCY	434000000
+#define BLADERF_TX_MEAS_FREQUENCY	434000000
+
 struct module_config {
     bladerf_module module;
 
