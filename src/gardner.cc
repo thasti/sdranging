@@ -13,8 +13,6 @@ Gardner::Gardner(float wn, float zeta, int osf) {
 	g1 = (1-expf(-2*zeta*wn))/gain;
 	g2 = (1+expf(-2*zeta*wn)-2*expf(-zeta*wn)*cosf(wn*sqrtf(1-zeta*zeta)))/gain;
 
-	printf("%f %f\n", g1, g2);
-
 	spl_buf = (float *)malloc(osf * sizeof(float));
 	if (spl_buf == NULL) {
 		perror("Cannot allocate Gardner sample buffer.\n");

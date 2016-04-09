@@ -66,7 +66,6 @@ void rx_thread(struct bladerf *dev) {
 	/* carrier phase recovery costas loop */
 	Costas costas(RX_COSTAS_WN, RX_COSTAS_ZETA);
 	std::complex<float> costas_out;
-	bool costas_locked = 0;
 
 	/* matched filter */
 	firfilt_rrrf matched_filter;
@@ -123,12 +122,11 @@ void rx_thread(struct bladerf *dev) {
 	}
 	matched_filter = firfilt_rrrf_create(matched_filter_h, MFILT_SPLS_PER_SYM);
 
-	std::ofstream out("tmp.dat",std::ios_base::binary);
-	float write_i;
-	float write_q;
+	//std::ofstream out("tmp.dat",std::ios_base::binary);
+	//float write_i;
+	//float write_q;
 
 	/* run processing */
-	
 	j = 0;
 	while(!done) {
 		status = bladerf_sync_rx(dev, rx_samples, samples_len, NULL, 5000);
@@ -148,17 +146,6 @@ void rx_thread(struct bladerf *dev) {
 				chfilt_out = chfilt_out / limiter_value;
 				costas_out = costas.step(chfilt_out);
 
-				/*
-				if (!costas_locked && costas.is_locked()) {
-					costas_locked = 1;
-					printf("Costas locked at %d!\n", j);
-				}
-				if (costas_locked && !costas.is_locked()) {
-					costas_locked = 0;
-					printf("Costas unlocked at %d!\n", j);
-				}
-				*/
-
 				firfilt_rrrf_push(matched_filter, costas_out.imag());
 				firfilt_rrrf_execute(matched_filter, &matched_filter_out);
 
@@ -176,18 +163,18 @@ void rx_thread(struct bladerf *dev) {
 					}
 				}
 
-				write_i = costas_out.real();
-				write_q = costas_out.imag();
+				//write_i = costas_out.real();
+				//write_q = costas_out.imag();
 
-				out.write((char *)&write_i,sizeof(float));
-				out.write((char *)&write_q,sizeof(float));
+				//out.write((char *)&write_i,sizeof(float));
+				//out.write((char *)&write_q,sizeof(float));
 			}
 			
 		} else {
 			printf("bladerx_sync_rx() timed out.!\n");
 		}
 	}
-	out.close();
+	//out.close();
 
 	free(rx_samples);
 
