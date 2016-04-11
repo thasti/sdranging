@@ -56,7 +56,12 @@ void check_calibration_finish(struct bladerf *dev) {
 			}
 			status = bladerf_set_frequency(dev, BLADERF_MODULE_TX, BLADERF_TX_MEAS_FREQUENCY);
     			if (status != 0) {
-        			fprintf(stderr, "Failed to set RX measurement frequency, %s\n",
+        			fprintf(stderr, "Failed to set TX measurement frequency, %s\n",
+            			bladerf_strerror(status));
+			}
+			status = bladerf_set_loopback(dev, BLADERF_LB_NONE);
+			if (status != 0) {
+        			fprintf(stderr, "Failed to disable loopback mode, %s\n",
             			bladerf_strerror(status));
 			}
     		}

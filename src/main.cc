@@ -81,6 +81,11 @@ int main(int argc, char *argv[])
 	if (status != 0) {
 		goto out;
 	}
+
+	status = bladerf_set_loopback(dev, BLADERF_LB_RF_LNA1);
+	if (status != 0) {
+		goto out;
+	}
 	
 	status = bladerf_enable_module(dev, BLADERF_MODULE_RX, true);
 	if (status != 0) {
