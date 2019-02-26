@@ -21,7 +21,7 @@ c_seq{6} = zeros(23, 23);
 
 for i=1:6
     for j=1:length(c{i})
-        c_seq{i}(j,:) = circshift(c{i}, -(j-1), 2);
+        c_seq{i}(j,:) = circshift(c{i}, -(j-1));%, 2);
     end
 end
 

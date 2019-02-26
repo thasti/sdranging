@@ -92,7 +92,7 @@ int init_sync(struct bladerf *dev)
     const unsigned int timeout_ms    = 3500;
 
     status = bladerf_sync_config(dev,
-                                 BLADERF_MODULE_RX,
+                                 (bladerf_channel_layout)BLADERF_MODULE_RX,
                                  BLADERF_FORMAT_SC16_Q11,
                                  num_buffers,
                                  buffer_size,
@@ -106,7 +106,7 @@ int init_sync(struct bladerf *dev)
     }
 
     status = bladerf_sync_config(dev,
-                                 BLADERF_MODULE_TX,
+                                 (bladerf_channel_layout)BLADERF_MODULE_TX,
                                  BLADERF_FORMAT_SC16_Q11,
                                  num_buffers,
                                  buffer_size,

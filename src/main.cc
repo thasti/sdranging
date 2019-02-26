@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	config.samplerate = 2000000;
 	config.rx_lna	  = BLADERF_LNA_GAIN_BYPASS;
 	config.vga1		  = 30;
-	config.vga2		  = 0;
+	config.vga2		  = 23;
 
 	status = configure_module(dev, &config);
 	if (status != 0) {
@@ -68,8 +68,8 @@ int main(int argc, char *argv[])
 	config.frequency  = BLADERF_TX_CALIB_FREQUENCY;
 	config.bandwidth  = 1500000;
 	config.samplerate = 2000000;
-	config.vga1		  = -20;
-	config.vga2		  = 0;
+	config.vga1		  = -10;
+	config.vga2		  = 17;
 
 	status = configure_module(dev, &config);
 	if (status != 0) {

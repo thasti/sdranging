@@ -61,5 +61,5 @@ void RangeCalc::new_range_position(int position) {
 }
 
 float RangeCalc::get_range(void) {
-	return ((spl_range - spl_offset_frac) / (float)samp_rate) * SPEED_OF_LIGHT;
+	return -((spl_range - spl_offset_frac) / (float)samp_rate) * SPEED_OF_LIGHT / 2.0;
 }

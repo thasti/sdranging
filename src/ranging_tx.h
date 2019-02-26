@@ -6,7 +6,7 @@
  * sample rate is integer multiple of symbol rate
  */
 #define TX_FS		2000000
-#define TX_OSF		200
+#define TX_OSF		300
 #define TX_FC		(TX_FS/TX_OSF)
 #define TX_BUFLEN_CHIPS	100
 #define TX_BUFLEN_SPLS	(TX_OSF*TX_BUFLEN_CHIPS)
