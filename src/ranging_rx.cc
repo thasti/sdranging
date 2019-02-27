@@ -111,6 +111,8 @@ void rx_thread(struct bladerf *dev) {
 	/* range tracker */
 	RangeCalc rangecalc = RangeCalc(RX_GARDNER_FS, RX_GARDNER_SPLS_PER_SYM, RX_T2B_CORR_CHIPS);
 
+    std::ofstream outfile("range_data.csv",std::ios_base::binary);
+
 	/* Allocate a buffer to store received samples in */
 	rx_samples = (int16_t *) malloc(samples_len * 2 * sizeof(int16_t));
 	if (rx_samples == NULL) {
@@ -149,10 +151,6 @@ void rx_thread(struct bladerf *dev) {
 	}
 	matched_filter = firfilt_rrrf_create(matched_filter_h, MFILT_SPLS_PER_SYM);
 
-	//std::ofstream out("tmp.dat",std::ios_base::binary);
-	//float write_i;
-	//float write_q;
-
 	/* run processing */
 	j = 0;
 	while(!done) {
@@ -188,21 +186,18 @@ void rx_thread(struct bladerf *dev) {
 					if (t2b_corr_finished) {
 						process_corr_result(costas, t2bcorr, rangecalc);
 						check_calibration_finish(dev);
+                        if (t2bcorr.is_locked()) {
+                            outfile << rangecalc.get_range() << std::endl;
+                        }
 					}
 				}
-
-				//write_i = costas_out.real();
-				//write_q = costas_out.imag();
-
-				//out.write((char *)&write_i,sizeof(float));
-				//out.write((char *)&write_q,sizeof(float));
 			}
 			
 		} else {
 			printf("bladerx_sync_rx() timed out.!\n");
 		}
 	}
-	//out.close();
+	outfile.close();
 
 	free(rx_samples);
 
