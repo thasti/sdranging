@@ -186,7 +186,7 @@ void rx_thread(struct bladerf *dev) {
 					if (t2b_corr_finished) {
 						process_corr_result(costas, t2bcorr, rangecalc);
 						check_calibration_finish(dev);
-                        if (t2bcorr.is_locked()) {
+                        if (t2bcorr.is_locked() && (rangecalc.get_range() > 0.0f)) {
                             outfile << rangecalc.get_range() << std::endl;
                         }
 					}
