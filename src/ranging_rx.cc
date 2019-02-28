@@ -1,6 +1,7 @@
 #include <complex>
 #include <iostream>
 #include <fstream>
+#include <chrono>
 #include <libbladeRF.h>
 #include <liquid/liquid.h>
 #include "bladerf.h"
@@ -112,6 +113,7 @@ void rx_thread(struct bladerf *dev) {
 	RangeCalc rangecalc = RangeCalc(RX_GARDNER_FS, RX_GARDNER_SPLS_PER_SYM, RX_T2B_CORR_CHIPS);
 
     std::ofstream outfile("range_data.csv",std::ios_base::binary);
+    std::chrono::milliseconds timestamp;
 
 	/* Allocate a buffer to store received samples in */
 	rx_samples = (int16_t *) malloc(samples_len * 2 * sizeof(int16_t));
@@ -187,6 +189,9 @@ void rx_thread(struct bladerf *dev) {
 						process_corr_result(costas, t2bcorr, rangecalc);
 						check_calibration_finish(dev);
                         if (t2bcorr.is_locked() && (rangecalc.get_range() > 0.0f)) {
+                            timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                std::chrono::system_clock::now().time_since_epoch());
+                            outfile << std::to_string(timestamp.count()) << " ";
                             outfile << rangecalc.get_range() << std::endl;
                         }
 					}
